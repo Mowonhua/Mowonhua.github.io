@@ -24,7 +24,7 @@
 <meta property="og:description" content="#本篇纯属练手之作# 指路MDN GrammarSpecial comment hashbang comment  123#!usr\bin\env node&#x2F;*this is used to specify the path to a particular JavaScript engine * that should execute the script, only appear in the">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-01-10T11:09:32.000Z">
-<meta property="article:modified_time" content="2023-01-10T11:17:15.973Z">
+<meta property="article:modified_time" content="2023-01-10T11:28:06.064Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="菜">
 <meta name="twitter:card" content="summary_large_image">
@@ -285,7 +285,7 @@
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-comment">//below shows how to use the three keyword</span><br><span class="hljs-keyword">var</span> x = <span class="hljs-number">4</span>;<br><span class="hljs-keyword">let</span> y = <span class="hljs-number">5</span>;<br><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">PI</span> = <span class="hljs-number">3.14</span>;<br><br><span class="hljs-keyword">const</span> &#123;bar&#125; = foo;<span class="hljs-comment">//this will assign the value of &quot;bar&quot; from object &quot;foo&quot; to &quot;bar&quot;</span><br><br></code></pre></td></tr></table></figure>
 
 <blockquote>
-<p><span style="color:green">Note: <code>var</code> always declares a global variable. You can refer to the variable even before its declaration but only with value “undefined”. This feature is called “<a href="_" title="提升">hoisting</a>“</span></p>
+<p><span style="color:green">Note: <code>var</code> always declares a global variable. You can refer to the variable even before its declaration but only with value “undefined”. This feature is called “hoisting<sup id="fnref:1" class="footnote-ref"><a href="#fn:1" rel="footnote"><span class="hint--top hint--rounded" aria-label="提升">[1]</span></a></sup>“</span></p>
 </blockquote>
 <p>About constants: Re-assignments of constants isn’t allowed, but properties of objects can be changed without problems.</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs javascript"><span class="hljs-keyword">const</span> <span class="hljs-variable constant_">MY_OBJECT</span> = &#123;<span class="hljs-attr">key</span>: <span class="hljs-string">&#x27;value&#x27;</span>&#125;;<br><span class="hljs-variable constant_">MY_OBJECT</span>.<span class="hljs-property">key</span> = <span class="hljs-string">&#x27;othervalue&#x27;</span>;<br></code></pre></td></tr></table></figure>
@@ -311,7 +311,10 @@
 
 <p>The functions converting string that represents a number to number: <code>parseInt(string, &lt;radix&gt;)</code> and <code>parseFloat()</code>. </p>
 <p>Another way is ‘+’: <code>(+&#39;1.1&#39;) + (+&#39;1.1&#39;)// =2.2</code></p>
-<h2 id="Annotation"><a href="#Annotation" class="headerlink" title="Annotation"></a>Annotation</h2>
+<hr>
+<p>##Annotation</p>
+<section class="footnotes"><div class="footnote-list"><ol><li><span id="fn:1" class="footnote-text"><span>提升
+<a href="#fnref:1" rev="footnote" class="footnote-backref"> ↩</a></span></span></li></ol></div></section>
                 
               </div>
             
