@@ -204,7 +204,7 @@ const allTags = Array.from(
 								const bgColor = TAG_COLORS[firstTag] || TAG_COLORS['default'];
 
 								return (
-									<li data-tags={tags.join('|')} style={`background-color: ${bgColor}`}>
+									<li data-tags={tags.join('|')} data-id={post.id} style={`background-color: ${bgColor}`}>
 										<a href={`/blog/${post.id}/`}>
 											{post.data.heroImage && (
 												<Image width={720} height={360} src={post.data.heroImage} alt="" class="card-bg-image" />
@@ -254,6 +254,12 @@ const allTags = Array.from(
 				if (!(form instanceof HTMLFormElement) || !(list instanceof HTMLElement)) return;
 
 				const items = Array.from(list.querySelectorAll('li'));
+				
+				/** @type {Set<string> | null} */
+				let searchResults = null;
+				/** @type {Array<{id: string, title: string, body: string, tags: string[]}> | null} */
+				let searchIndex = null;
+
 				const getSelected = () => {
 					const checked = Array.from(form.querySelectorAll('input[name="tags"]:checked'));
 					return new Set(
@@ -279,30 +285,88 @@ const allTags = Array.from(
 						}
 					});
 
-					const hasFilter = selected.size > 0;
+					const hasTagFilter = selected.size > 0;
+					const hasSearchFilter = searchResults !== null;
 
 					for (const li of items) {
 						if (!(li instanceof HTMLLIElement)) continue;
-						if (!hasFilter) {
-							li.style.display = '';
-							continue;
-						}
-
-						const tagAttr = li.getAttribute('data-tags') ?? '';
-						const postTags = new Set(tagAttr.split('|').filter(Boolean));
+						
 						let matches = true;
-						for (const t of selected) {
-							if (!postTags.has(t)) {
-								matches = false;
-								break;
+
+						if (hasTagFilter) {
+							const tagAttr = li.getAttribute('data-tags') ?? '';
+							const postTags = new Set(tagAttr.split('|').filter(Boolean));
+							for (const t of selected) {
+								if (!postTags.has(t)) {
+									matches = false;
+									break;
+								}
 							}
 						}
+
+						if (matches && hasSearchFilter) {
+							const id = li.getAttribute('data-id');
+							if (!id || !searchResults.has(id)) {
+								matches = false;
+							}
+						}
+
 						li.style.display = matches ? '' : 'none';
 					}
 				};
 
 				form.addEventListener('change', apply);
-				apply();
+
+				const loadSearchIndex = async () => {
+					if (searchIndex) return searchIndex;
+					try {
+						const res = await fetch('/search.json');
+						if (!res.ok) {
+							throw new Error(`HTTP error! status: ${res.status}`);
+						}
+						searchIndex = await res.json();
+						console.log('Search index loaded:', searchIndex.length, 'items');
+						return searchIndex;
+					} catch (e) {
+						console.error('Failed to load search index', e);
+						return [];
+					}
+				};
+
+				const performSearch = async (query) => {
+					if (!query) {
+						searchResults = null;
+						apply();
+						return;
+					}
+					
+					const index = await loadSearchIndex();
+					const q = query.toLowerCase();
+					searchResults = new Set();
+					
+					for (const post of index) {
+						const title = post.title ? post.title.toLowerCase() : '';
+						const body = post.body ? post.body.toLowerCase() : '';
+						if (title.includes(q) || body.includes(q)) {
+							searchResults.add(post.id);
+						}
+					}
+					apply();
+				};
+
+				window.addEventListener('search-updated', (e) => {
+					if (e instanceof CustomEvent) {
+						performSearch(e.detail.query);
+					}
+				});
+
+				const urlParams = new URLSearchParams(window.location.search);
+				const q = urlParams.get('q');
+				if (q) {
+					performSearch(q);
+				} else {
+					apply();
+				}
 			})();
 		</script>
 	</body>
