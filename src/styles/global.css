@@ -50,7 +50,7 @@ html {
 }
 
 html[data-theme='dark'] {
-	--page-background: #0b0b0b linear-gradient(rgba(var(--gray-dark), 33%), #0b0b0b) no-repeat;
+	--page-background: #0b0b0b linear-gradient(rgba(var(--gray-dark), 66%), #0b0b0b) no-repeat;
 	--page-background-size: 100% 600px;
 	--text-color: rgba(var(--gray-light), 0.92);
 	--heading-color: rgb(var(--gray-light));
