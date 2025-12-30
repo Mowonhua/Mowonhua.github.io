@@ -8,4 +8,12 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
 	site: 'https://mowonhua.github.io',
 	integrations: [mdx(), sitemap()],
+	markdown: {
+		shikiConfig: {
+			themes: {
+				light: 'github-light',
+				dark: 'github-dark',
+			},
+		},
+	},
 });

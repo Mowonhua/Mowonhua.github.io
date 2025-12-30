@@ -45,7 +45,7 @@ const tocHeadings = (headings ?? []).filter((heading) => {
 				max-width: calc(100% - 2em);
 				margin: auto;
 				padding: 1em;
-				color: rgb(var(--gray-dark));
+				color: var(--text-color);
 			}
 			.title {
 				margin-bottom: 1em;
@@ -77,7 +77,7 @@ const tocHeadings = (headings ?? []).filter((heading) => {
 				flex: 0 0 auto;
 				font-size: 1.2em;
 				margin-bottom: 0.5em;
-				color: rgb(var(--gray-dark));
+				color: var(--text-color);
 			}
 			.toc-body {
 				flex: 1 1 auto;
@@ -94,11 +94,11 @@ const tocHeadings = (headings ?? []).filter((heading) => {
 			}
 			.toc a {
 				text-decoration: none;
-				color: rgb(var(--gray));
+				color: var(--text-color);
 				transition: color 0.2s;
 			}
 			.toc a:hover {
-				color: rgb(var(--gray-dark));
+				color: var(--muted-color);
 			}
 			.toc-level-3 {
 				padding-left: 1em;

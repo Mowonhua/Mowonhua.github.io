@@ -15,6 +15,65 @@
 	--box-shadow:
 		0 2px 6px rgba(var(--gray), 25%), 0 8px 24px rgba(var(--gray), 33%), 0 16px 32px
 		rgba(var(--gray), 33%);
+
+	/* Themeable surfaces */
+	--surface-subtle: rgba(var(--gray-light), 0.55);
+	--surface-subtle-strong: rgba(var(--gray-light), 0.75);
+	--border-subtle: rgba(var(--gray), 0.18);
+
+	/* Themeable page chrome */
+	--page-background: linear-gradient(var(--gray-gradient)) no-repeat;
+	--page-background-size: 100% 600px;
+	--text-color: rgb(var(--gray-dark));
+	--heading-color: rgb(var(--black));
+	--muted-color: rgb(var(--gray));
+	--hr-color: rgb(var(--gray-light));
+
+	--header-bg: #fff;
+	--header-shadow: 0 2px 8px rgba(var(--black), 5%);
+	--nav-link-color: rgb(var(--black));
+
+	--input-bg: #fff;
+	--input-text: rgb(var(--gray-dark));
+	--input-border: rgba(var(--gray), 0.2);
+	--input-placeholder: rgb(var(--gray));
+
+	--footer-background: linear-gradient(var(--gray-gradient)) no-repeat;
+	--footer-text: rgb(var(--gray));
+	--footer-link: rgb(var(--gray));
+	--footer-link-hover: rgb(var(--gray-dark));
+}
+
+html {
+	color-scheme: light dark;
+}
+
+html[data-theme='dark'] {
+	--page-background: #0b0b0b;
+	--text-color: rgba(var(--gray-light), 0.92);
+	--heading-color: rgb(var(--gray-light));
+	--muted-color: rgba(var(--gray-light), 0.68);
+	--hr-color: rgba(var(--gray-light), 0.14);
+
+	--surface-subtle: rgba(var(--black), 0.35);
+	--surface-subtle-strong: rgba(var(--black), 0.55);
+	--border-subtle: rgba(var(--gray-light), 0.12);
+
+	--header-bg: rgba(var(--black), 0.7);
+	--header-shadow: 0 2px 10px rgba(var(--black), 45%);
+	--nav-link-color: rgb(var(--gray-light));
+
+	--page-background-size: 100% 100%;
+
+	--input-bg: rgba(var(--black), 0.35);
+	--input-text: rgb(var(--gray-light));
+	--input-border: rgba(var(--gray-light), 0.14);
+	--input-placeholder: rgba(var(--gray-light), 0.55);
+
+	--footer-background: var(--header-bg);
+	--footer-text: rgba(var(--gray-light), 0.68);
+	--footer-link: rgba(var(--gray-light), 0.68);
+	--footer-link-hover: rgba(var(--gray-light), 0.9);
 }
 @font-face {
 	font-family: "Atkinson";
@@ -35,11 +94,11 @@ body {
 	margin: 0;
 	padding: 0;
 	text-align: left;
-	background: linear-gradient(var(--gray-gradient)) no-repeat;
-	background-size: 100% 600px;
+	background: var(--page-background);
+	background-size: var(--page-background-size);
 	word-wrap: break-word;
 	overflow-wrap: break-word;
-	color: rgb(var(--gray-dark));
+	color: var(--text-color);
 	font-size: 20px;
 	line-height: 1.7;
 	min-height: 100vh;
@@ -60,7 +119,7 @@ h4,
 h5,
 h6 {
 	margin: 0 0 0.5rem 0;
-	color: rgb(var(--black));
+	color: var(--heading-color);
 	line-height: 1.2;
 }
 h1 {
@@ -94,6 +153,22 @@ p {
 .prose p {
 	margin-bottom: 2em;
 }
+
+/* Article Markdown polish (scoped to .prose) */
+.prose a {
+	color: var(--accent-dark);
+	text-decoration: underline;
+	text-decoration-thickness: from-font;
+	text-underline-offset: 0.14em;
+}
+.prose a:hover {
+	color: var(--accent);
+}
+@supports (color: color-mix(in srgb, red 50%, white)) {
+	.prose a {
+		color: color-mix(in srgb, var(--accent) 65%, rgb(var(--gray-dark)));
+	}
+}
 textarea {
 	width: 100%;
 	font-size: 16px;
@@ -110,16 +185,63 @@ img {
 	border-radius: 8px;
 }
 code {
-	padding: 2px 5px;
-	background-color: rgb(var(--gray-light));
-	border-radius: 2px;
+	font-family:
+		ui-monospace,
+		SFMono-Regular,
+		Menlo,
+		Monaco,
+		Consolas,
+		"Liberation Mono",
+		"Courier New",
+		monospace;
 }
+
+/* Inline code */
+.prose :not(pre) > code {
+	padding: 0.15em 0.4em;
+	background-color: var(--surface-subtle-strong);
+	border: 1px solid var(--border-subtle);
+	border-radius: 0.5em;
+	font-size: 0.92em;
+	white-space: break-spaces;
+}
+
 pre {
 	padding: 1.5em;
 	border-radius: 8px;
 }
-pre > code {
-	all: unset;
+
+/* Code blocks */
+.prose pre {
+	padding: 1.1em 1.2em;
+	border-radius: 12px;
+	background: var(--surface-subtle);
+	border: 1px solid var(--border-subtle);
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+/* Astro/Shiki often injects a dark background via inline styles; force a light background. */
+.prose pre.astro-code {
+	background-color: var(--surface-subtle) !important;
+	background-image: none !important;
+}
+.prose pre > code {
+	background: transparent;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	display: block;
+	font-size: 0.92em;
+	line-height: 1.65;
+}
+
+html[data-theme='dark'] .astro-code,
+html[data-theme='dark'] .astro-code span {
+  color: var(--shiki-dark) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 blockquote {
 	border-left: 4px solid var(--accent);
@@ -127,9 +249,30 @@ blockquote {
 	margin: 0;
 	font-size: 1.333em;
 }
+
+/* Blockquotes in article body */
+.prose blockquote {
+	margin: 1.6em 0;
+	padding: 0.9em 1em;
+	border-left: 4px solid rgba(35, 55, 255, 0.22);
+	background: var(--surface-subtle);
+	border-radius: 12px;
+	font-size: 1.05em;
+}
+.prose blockquote > :first-child {
+	margin-top: 0;
+}
+.prose blockquote > :last-child {
+	margin-bottom: 0;
+}
+@supports (color: color-mix(in srgb, red 50%, white)) {
+	.prose blockquote {
+		border-left-color: color-mix(in srgb, var(--accent) 30%, white);
+	}
+}
 hr {
 	border: none;
-	border-top: 1px solid rgb(var(--gray-light));
+	border-top: 1px solid var(--hr-color);
 }
 @media (max-width: 720px) {
 	body {
@@ -156,4 +299,13 @@ hr {
 	clip-path: inset(50%);
 	/* added line to stop words getting smushed together (as they go onto separate lines and some screen readers do not understand line feeds as a space */
 	white-space: nowrap;
+}
+
+/* Theme transition */
+.theme-transition,
+.theme-transition *,
+.theme-transition *:before,
+.theme-transition *:after {
+	transition: all 0.3s ease-in-out !important;
+	transition-delay: 0 !important;
 }

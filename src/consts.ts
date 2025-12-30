@@ -6,7 +6,7 @@ export const SITE_DESCRIPTION = 'Welcome to my website!';
 
 export const TAG_COLORS: Record<string, string> = {
 	'default': 'rgba(183, 184, 182, 1)',
-	'仿生免疫': 'rgba(65, 134, 18, 1)',
+	'仿生免疫': 'rgba(62, 136, 12, 0.7)',
 	'ais': 'rgb(97, 218, 251)',
 	'vue': 'rgb(66, 184, 131)',
 	'angular': 'rgb(221, 0, 49)',
