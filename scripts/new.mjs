@@ -198,7 +198,7 @@ async function main() {
 		heroImage: heroImage ? heroImage : undefined,
 	});
 
-	const body = `${fm}\n\n# ${title}\n\n`;
+	const body = `${fm}\n\n`;
 	await fs.writeFile(fullPath, body, { encoding: 'utf8', flag: 'wx' });
 
 	const rel = path.relative(cwd, fullPath).split(path.sep).join('/');

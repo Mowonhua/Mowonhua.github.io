@@ -1,14 +1,24 @@
 ---
 import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 
-type Props = CollectionEntry<'blog'>['data'];
+type Props = CollectionEntry<'blog'>['data'] & {
+	headings?: MarkdownHeading[];
+};
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.props;
+
+const tocHeadings = (headings ?? []).filter((heading) => {
+	const text = heading.text?.trim().toLowerCase();
+	const slug = heading.slug?.trim().toLowerCase();
+	if (text === 'footnotes' || slug === 'footnotes') return false;
+	return true;
+});
 ---
 
 <html lang="en">
@@ -52,12 +62,75 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 			.last-updated-on {
 				font-style: italic;
 			}
+			.toc {
+				position: fixed;
+				top: 50%;
+				transform: translateY(-50%);
+				left: 2rem;
+				width: 250px;
+				height: 70vh;
+				font-size: 0.9em;
+				display: none;
+			}
+			.toc h2 {
+				flex: 0 0 auto;
+				font-size: 1.2em;
+				margin-bottom: 0.5em;
+				color: rgb(var(--gray-dark));
+			}
+			.toc-body {
+				flex: 1 1 auto;
+				overflow-y: auto;
+				min-height: 0;
+			}
+			.toc ul {
+				list-style: none;
+				padding: 0;
+			}
+			.toc li {
+				margin-bottom: 0.5em;
+				line-height: 1.2;
+			}
+			.toc a {
+				text-decoration: none;
+				color: rgb(var(--gray));
+				transition: color 0.2s;
+			}
+			.toc a:hover {
+				color: rgb(var(--gray-dark));
+			}
+			.toc-level-3 {
+				padding-left: 1em;
+			}
+			.toc-level-4 {
+				padding-left: 2em;
+			}
+			@media (min-width: 1250px) {
+				.toc {
+					display: flex;
+					flex-direction: column;
+				}
+			}
 		</style>
 	</head>
 
 	<body>
 		<Header />
 		<main>
+			{tocHeadings.length > 0 && (
+				<aside class="toc">
+					<h2>目录</h2>
+					<div class="toc-body">
+						<ul>
+							{tocHeadings.map((heading) => (
+								<li class={`toc-level-${heading.depth}`}>
+									<a href={`#${heading.slug}`}>{heading.text}</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				</aside>
+			)}
 			<article>
 				<div class="hero-image">
 					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}

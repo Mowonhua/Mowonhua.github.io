@@ -5,9 +5,9 @@ export const SITE_TITLE = 'Mowon Blog';
 export const SITE_DESCRIPTION = 'Welcome to my website!';
 
 export const TAG_COLORS: Record<string, string> = {
-	'default': 'rgb(50, 50, 50)',
-	'astro': 'rgb(255, 93, 1)',
-	'react': 'rgb(97, 218, 251)',
+	'default': 'rgba(183, 184, 182, 1)',
+	'仿生免疫': 'rgba(65, 134, 18, 1)',
+	'ais': 'rgb(97, 218, 251)',
 	'vue': 'rgb(66, 184, 131)',
 	'angular': 'rgb(221, 0, 49)',
 	'svelte': 'rgb(255, 62, 0)',
