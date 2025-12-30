@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import type { MarkdownHeading } from 'astro';
 import BaseHead from '../components/BaseHead.astro';
+import BackToTop from '../components/BackToTop.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
@@ -116,6 +117,7 @@ const tocHeadings = (headings ?? []).filter((heading) => {
 
 	<body>
 		<Header />
+		<BackToTop />
 		<main>
 			{tocHeadings.length > 0 && (
 				<aside class="toc">
