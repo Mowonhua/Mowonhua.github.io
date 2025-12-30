@@ -5,7 +5,8 @@
  */
 
 :root {
-	--accent: #2337ff;
+	--accent: #13d9c9;
+	--accent-light: #21fcbe;
 	--accent-dark: #000d8a;
 	--black: 15, 18, 25;
 	--gray: 96, 115, 159;
@@ -22,7 +23,7 @@
 	--border-subtle: rgba(var(--gray), 0.18);
 
 	/* Themeable page chrome */
-	--page-background: linear-gradient(var(--gray-gradient)) no-repeat;
+	--page-background: #fff linear-gradient(var(--gray-gradient)) no-repeat;
 	--page-background-size: 100% 600px;
 	--text-color: rgb(var(--gray-dark));
 	--heading-color: rgb(var(--black));
@@ -33,7 +34,7 @@
 	--header-shadow: 0 2px 8px rgba(var(--black), 5%);
 	--nav-link-color: rgb(var(--black));
 
-	--input-bg: #fff;
+	--input-bg: rgba(#fff, 0.35);
 	--input-text: rgb(var(--gray-dark));
 	--input-border: rgba(var(--gray), 0.2);
 	--input-placeholder: rgb(var(--gray));
@@ -49,7 +50,8 @@ html {
 }
 
 html[data-theme='dark'] {
-	--page-background: #0b0b0b;
+	--page-background: #0b0b0b linear-gradient(rgba(var(--gray-dark), 33%), #0b0b0b) no-repeat;
+	--page-background-size: 100% 600px;
 	--text-color: rgba(var(--gray-light), 0.92);
 	--heading-color: rgb(var(--gray-light));
 	--muted-color: rgba(var(--gray-light), 0.68);
@@ -59,13 +61,11 @@ html[data-theme='dark'] {
 	--surface-subtle-strong: rgba(var(--black), 0.55);
 	--border-subtle: rgba(var(--gray-light), 0.12);
 
-	--header-bg: rgba(var(--black), 0.7);
+	--header-bg: rgba(var(--gray-dark), 0.7);
 	--header-shadow: 0 2px 10px rgba(var(--black), 45%);
 	--nav-link-color: rgb(var(--gray-light));
 
-	--page-background-size: 100% 100%;
-
-	--input-bg: rgba(var(--black), 0.35);
+	--input-bg: rgba(var(--gray-dark), 0.35);
 	--input-text: rgb(var(--gray-light));
 	--input-border: rgba(var(--gray-light), 0.14);
 	--input-placeholder: rgba(var(--gray-light), 0.55);
@@ -156,7 +156,7 @@ p {
 
 /* Article Markdown polish (scoped to .prose) */
 .prose a {
-	color: var(--accent-dark);
+	color: var(--accent-light);
 	text-decoration: underline;
 	text-decoration-thickness: from-font;
 	text-underline-offset: 0.14em;
@@ -166,7 +166,7 @@ p {
 }
 @supports (color: color-mix(in srgb, red 50%, white)) {
 	.prose a {
-		color: color-mix(in srgb, var(--accent) 65%, rgb(var(--gray-dark)));
+		color: color-mix(in srgb, var(--accent-light) 65%, rgb(var(--gray-dark)));
 	}
 }
 textarea {
