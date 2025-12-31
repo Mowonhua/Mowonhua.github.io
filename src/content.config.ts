@@ -11,7 +11,13 @@ const blog = defineCollection({
 			description: z.string(),
 			// Transform string to Date object
 			pubDate: z.coerce.date(),
-			updatedDate: z.coerce.date().optional(),
+			updatedDate: z
+				.preprocess((value) => {
+					// YAML `updatedDate:` (no value) becomes null; also guard empty strings.
+					if (value == null) return undefined;
+					if (typeof value === 'string' && value.trim() === '') return undefined;
+					return value;
+				}, z.coerce.date().optional()),
 			tags: z
 				.union([z.array(z.string()), z.string()])
 				.optional()

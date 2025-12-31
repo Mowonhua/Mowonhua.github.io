@@ -15,7 +15,7 @@ Optional args:
   --tags "astro,typescript"
   --heroImage "../assets/hero.png"
   --date "2025-12-29"     (defaults to today)
-  --updated "2025-12-29"  (defaults to date)
+  --updated "2025-12-29"  (optional; only set when provided)
 
 Notes:
 - Creates a Markdown draft in src/content/drafts
@@ -98,7 +98,9 @@ function frontmatter({ title, description, date, updated, tags, heroImage }) {
 	lines.push(`title: ${escapeYamlString(title)}`);
 	lines.push(`description: ${escapeYamlString(description)}`);
 	lines.push(`pubDate: ${date}`);
-	lines.push(`updatedDate: ${updated}`);
+	if (updated) {
+		lines.push(`updatedDate: ${updated}`);
+	}
 	lines.push('tags:');
 	if (tags.length === 0) {
 		lines.push(`${indent}[]`);
@@ -147,7 +149,7 @@ async function main() {
 
 	const today = formatDateYYYYMMDD(new Date());
 	const date = args.date ? parseDateOrThrow(args.date, '--date') : today;
-	const updated = args.updated ? parseDateOrThrow(args.updated, '--updated') : date;
+	const updated = args.updated ? parseDateOrThrow(args.updated, '--updated') : undefined;
 
 	let title = typeof args.title === 'string' ? args.title.trim() : '';
 	let description = typeof args.description === 'string' ? args.description.trim() : '';

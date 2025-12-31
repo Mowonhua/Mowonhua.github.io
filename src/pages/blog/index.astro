@@ -199,9 +199,9 @@ const allTags = Array.from(
 									.map((t) => t.trim())
 									.filter(Boolean)
 									.map((t) => t.toLowerCase());
-								
-								const firstTag = tags[0] || 'default';
-								const bgColor = TAG_COLORS[firstTag] || TAG_COLORS['default'];
+							
+								const bgColor =
+									tags.map((tag) => TAG_COLORS[tag]).find(Boolean) || TAG_COLORS['default'];
 
 								return (
 									<li data-tags={tags.join('|')} data-id={post.id} style={`background-color: ${bgColor}`}>

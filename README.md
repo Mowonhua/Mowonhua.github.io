@@ -24,13 +24,13 @@ An Astro-based blog.
 
 This repo provides a command that generates a Markdown file with a complete frontmatter template under `src/content/drafts`:
 
-- Command: `npm run new:post`
+- Command: `npm run new`
 
 ### Interactive usage
 
 Run:
 
-- `npm run new:post`
+- `npm run new`
 
 You will be prompted for:
 
@@ -44,14 +44,15 @@ You will be prompted for:
 
 Note: when passing args through `npm run`, include `--`.
 
-- `npm run new:post -- --title "My Post" --description "..." --slug "my-post"`
-- `npm run new:post -- --tags "astro,typescript"`
-- `npm run new:post -- --heroImage "../assets/hero.png"`
-- `npm run new:post -- --date "2025-12-29" --updated "2025-12-29"`
+- `npm run new -- --title "My Post" --description "..." --slug "my-post"`
+- `npm run new -- --tags "astro,typescript"`
+- `npm run new -- --heroImage "../assets/hero.png"`
+- `npm run new -- --date "2025-12-29"`
+- `npm run new -- --updated "2025-12-29"`
 
 Show help:
 
-- `npm run new:post -- --help`
+- `npm run new -- --help`
 
 ### Frontmatter fields
 
@@ -62,7 +63,7 @@ The generated frontmatter matches `src/content.config.ts`:
 	- `description`: string
 	- `pubDate`: `YYYY-MM-DD`
 - Optional
-	- `updatedDate`: `YYYY-MM-DD` (generated, defaults to `pubDate`)
+	- `updatedDate`: `YYYY-MM-DD` (optional; if omitted, the blog post page will automatically use the source file's last modified time when it's later than `pubDate`)
 	- `tags`: array of strings (generated; empty array if omitted)
 	- `heroImage`: optional image reference (generated as a commented placeholder if omitted)
 
