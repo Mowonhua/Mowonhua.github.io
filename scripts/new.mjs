@@ -6,7 +6,7 @@ import readline from 'node:readline/promises';
 
 function usage() {
 	return `Usage:
-  npm run new:post
+  npm run new
 
 Optional args:
   --title "My Post"
