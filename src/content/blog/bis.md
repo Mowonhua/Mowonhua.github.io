@@ -2,7 +2,6 @@
 title: "仿生免疫概述"
 description: ""
 pubDate: 2025-12-30
-updatedDate: 2025-12-30
 tags:
   - "仿生免疫"
   - "AIS"
