@@ -4,6 +4,8 @@
   License MIT: https://github.com/HermanMartinus/bearblog/blob/master/LICENSE.md
  */
 
+@import "katex/dist/katex.min.css";
+
 :root {
 	--accent: #13d9c9;
 	--accent-light: #21fcbe;
