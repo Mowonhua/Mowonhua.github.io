@@ -14,6 +14,8 @@ type Props = CollectionEntry<'blog'>['data'] & {
 
 const { title, description, pubDate, updatedDate, heroImage, headings } = Astro.props;
 
+const showUpdatedDate = Boolean(updatedDate && updatedDate.valueOf() > pubDate.valueOf());
+
 const tocHeadings = (headings ?? []).filter((heading) => {
 	const text = heading.text?.trim().toLowerCase();
 	const slug = heading.slug?.trim().toLowerCase();
@@ -142,9 +144,9 @@ const tocHeadings = (headings ?? []).filter((heading) => {
 						<div class="date">
 							<FormattedDate date={pubDate} />
 							{
-								updatedDate && (
+								showUpdatedDate && updatedDate && (
 									<div class="last-updated-on">
-										Last updated on <FormattedDate date={updatedDate} />
+										修改于 <FormattedDate date={updatedDate} />
 									</div>
 								)
 							}

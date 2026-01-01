@@ -6,11 +6,11 @@
 - Markdown supports **math + KaTeX** via `remark-math`/`rehype-katex` (see `astro.config.mjs`) and KaTeX CSS is imported in `src/styles/global.css`.
 
 ## Dev workflows (Node)
-- Install: `npm install`
-- Dev server: `npm run dev`
-- Build: `npm run build`
-- Preview: `npm run preview`
-- New post generator: `npm run new -- --help` (implemented in `scripts/new.mjs`).
+- Install: `npm.cmd install`
+- Dev server: `npm.cmd run dev`
+- Build: `npm.cmd run build`
+- Preview: `npm.cmd run preview`
+- New post generator: `npm.cmd run new -- --help` (implemented in `scripts/new.mjs`).
 
 ## Content + routing conventions
 - **Single post pages**: `src/pages/blog/[...slug].astro` uses `getCollection('blog')` + `render(post)` and passes `headings` into `src/layouts/BlogPost.astro`.

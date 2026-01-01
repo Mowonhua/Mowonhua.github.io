@@ -6,10 +6,22 @@ import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE, TAG_COLORS } from '../../consts';
+import { getEffectiveUpdatedDateMinute, getSortDateMinute } from '../../utils/blogDates';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+const posts = await getCollection('blog');
+const postsMeta = await Promise.all(
+	posts.map(async (post) => {
+		const effectiveUpdatedDate = await getEffectiveUpdatedDateMinute(post);
+		const sortDate = await getSortDateMinute(post);
+		return {
+			post,
+			effectiveUpdatedDate,
+			sortKey: sortDate.valueOf(),
+		};
+	}),
 );
+
+postsMeta.sort((a, b) => b.sortKey - a.sortKey);
 
 const allTags = Array.from(
 	new Set(
@@ -194,7 +206,7 @@ const allTags = Array.from(
 				<section class="posts">
 					<ul id="post-list">
 						{
-							posts.map((post) => {
+							postsMeta.map(({ post, effectiveUpdatedDate }) => {
 								const tags = (post.data.tags ?? [])
 									.map((t) => t.trim())
 									.filter(Boolean)
@@ -212,7 +224,15 @@ const allTags = Array.from(
 											<div class={`card-content ${post.data.heroImage ? 'has-image' : 'no-image'}`}>
 												<h4 class="title">{post.data.title}</h4>
 												<p class="date">
-													<FormattedDate date={post.data.pubDate} />
+													{effectiveUpdatedDate ? (
+														<>
+															修改于 <FormattedDate date={effectiveUpdatedDate} />
+														</>
+													) : (
+														<>
+															发布于 <FormattedDate date={post.data.pubDate} />
+														</>
+													)}
 												</p>
 											</div>
 										</a>
@@ -226,9 +246,9 @@ const allTags = Array.from(
 				<aside class="sidebar" aria-label="Tag filter">
 					<form id="tag-filter">
 						<fieldset>
-							<legend>Tags</legend>
+							<legend>标签</legend>
 							{allTags.length === 0 ? (
-								<p class="tag-empty">No tags</p>
+								<p class="tag-empty">暂无标签</p>
 							) : (
 								<div class="tag-list">
 									{
@@ -255,10 +275,9 @@ const allTags = Array.from(
 
 				const items = Array.from(list.querySelectorAll('li'));
 				
-				/** @type {Set<string> | null} */
-				let searchResults = null;
-				/** @type {Array<{id: string, title: string, body: string, tags: string[]}> | null} */
-				let searchIndex = null;
+				type SearchDoc = { id: string; title: string; body: string; tags: string[] };
+				let searchResults: Set<string> | null = null;
+				let searchIndex: SearchDoc[] | null = null;
 
 				const getSelected = () => {
 					const checked = Array.from(form.querySelectorAll('input[name="tags"]:checked'));
@@ -286,7 +305,6 @@ const allTags = Array.from(
 					});
 
 					const hasTagFilter = selected.size > 0;
-					const hasSearchFilter = searchResults !== null;
 
 					for (const li of items) {
 						if (!(li instanceof HTMLLIElement)) continue;
@@ -304,7 +322,7 @@ const allTags = Array.from(
 							}
 						}
 
-						if (matches && hasSearchFilter) {
+						if (matches && searchResults) {
 							const id = li.getAttribute('data-id');
 							if (!id || !searchResults.has(id)) {
 								matches = false;
@@ -324,7 +342,7 @@ const allTags = Array.from(
 						if (!res.ok) {
 							throw new Error(`HTTP error! status: ${res.status}`);
 						}
-						searchIndex = await res.json();
+						searchIndex = (await res.json()) as SearchDoc[];
 						console.log('Search index loaded:', searchIndex.length, 'items');
 						return searchIndex;
 					} catch (e) {
@@ -333,7 +351,7 @@ const allTags = Array.from(
 					}
 				};
 
-				const performSearch = async (query) => {
+				const performSearch = async (query: string) => {
 					if (!query) {
 						searchResults = null;
 						apply();

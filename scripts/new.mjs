@@ -14,8 +14,8 @@ Optional args:
   --slug "my-post"
   --tags "astro,typescript"
   --heroImage "../assets/hero.png"
-  --date "2025-12-29"     (defaults to today)
-  --updated "2025-12-29"  (optional; only set when provided)
+	--date "2025-12-29 14:05"     (defaults to now, minute precision)
+	--updated "2025-12-29 14:05"  (optional; only set when provided)
 
 Notes:
 - Creates a Markdown draft in src/content/drafts
@@ -49,16 +49,48 @@ function formatDateYYYYMMDD(d) {
 	return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
-function parseDateOrThrow(input, flagName) {
-	// Expect YYYY-MM-DD
-	if (typeof input !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(input)) {
-		throw new Error(`Invalid ${flagName} date (expected YYYY-MM-DD): ${String(input)}`);
+function truncateToMinute(d) {
+	return new Date(Math.floor(d.getTime() / 60_000) * 60_000);
+}
+
+function formatDateTimeYYYYMMDDHHmm(d) {
+	return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+function parseDateTimeOrThrow(input, flagName) {
+	if (typeof input !== 'string') {
+		throw new Error(`Invalid ${flagName} date: ${String(input)}`);
 	}
-	const d = new Date(`${input}T00:00:00`);
-	if (Number.isNaN(d.getTime())) {
-		throw new Error(`Invalid ${flagName} date: ${input}`);
+	const s = input.trim();
+
+	// Allow YYYY-MM-DD (assume 00:00)
+	if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+		const d = new Date(`${s}T00:00:00`);
+		if (Number.isNaN(d.getTime())) throw new Error(`Invalid ${flagName} date: ${s}`);
+		return formatDateTimeYYYYMMDDHHmm(d);
 	}
-	return input;
+
+	// Allow YYYY-MM-DD HH:mm
+	if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s)) {
+		const d = new Date(`${s.replace(' ', 'T')}:00`);
+		if (Number.isNaN(d.getTime())) {
+			throw new Error(`Invalid ${flagName} date (expected YYYY-MM-DD HH:mm): ${s}`);
+		}
+		return formatDateTimeYYYYMMDDHHmm(d);
+	}
+
+	// Allow YYYY-MM-DDTHH:mm
+	if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) {
+		const d = new Date(`${s}:00`);
+		if (Number.isNaN(d.getTime())) {
+			throw new Error(`Invalid ${flagName} date (expected YYYY-MM-DDTHH:mm): ${s}`);
+		}
+		return formatDateTimeYYYYMMDDHHmm(d);
+	}
+
+	throw new Error(
+		`Invalid ${flagName} date (expected YYYY-MM-DD HH:mm or YYYY-MM-DDTHH:mm; YYYY-MM-DD is also accepted): ${s}`,
+	);
 }
 
 function slugify(input) {
@@ -147,9 +179,9 @@ async function main() {
 		return;
 	}
 
-	const today = formatDateYYYYMMDD(new Date());
-	const date = args.date ? parseDateOrThrow(args.date, '--date') : today;
-	const updated = args.updated ? parseDateOrThrow(args.updated, '--updated') : undefined;
+	const nowMinute = truncateToMinute(new Date());
+	const date = args.date ? parseDateTimeOrThrow(args.date, '--date') : formatDateTimeYYYYMMDDHHmm(nowMinute);
+	const updated = args.updated ? parseDateTimeOrThrow(args.updated, '--updated') : undefined;
 
 	let title = typeof args.title === 'string' ? args.title.trim() : '';
 	let description = typeof args.description === 'string' ? args.description.trim() : '';

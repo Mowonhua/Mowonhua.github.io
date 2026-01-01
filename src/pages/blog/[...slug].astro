@@ -1,8 +1,8 @@
 ---
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
+import { getEffectiveUpdatedDateMinute } from '../../utils/blogDates';
+import { truncateToMinute } from '../../utils/datetime';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog');
@@ -16,39 +16,10 @@ type Props = CollectionEntry<'blog'>;
 const post = Astro.props;
 const { Content, headings } = await render(post);
 
-let effectiveUpdatedDate = post.data.updatedDate;
-if (!effectiveUpdatedDate) {
-	try {
-		const toLocalDateKey = (d: Date) => {
-			const y = d.getFullYear();
-			const m = String(d.getMonth() + 1).padStart(2, '0');
-			const day = String(d.getDate()).padStart(2, '0');
-			return `${y}-${m}-${day}`;
-		};
-
-		const blogDir = path.resolve(process.cwd(), 'src', 'content', 'blog');
-		const id = post.id;
-		const candidates = id.endsWith('.md') || id.endsWith('.mdx') ? [id] : [`${id}.md`, `${id}.mdx`];
-		let mtime;
-		for (const rel of candidates) {
-			try {
-				const stat = await fs.stat(path.join(blogDir, rel));
-				mtime = stat.mtime;
-				break;
-			} catch {
-				// try next candidate
-			}
-		}
-		if (!mtime) throw new Error('No source file found for entry');
-		if (toLocalDateKey(mtime) > toLocalDateKey(post.data.pubDate)) {
-			effectiveUpdatedDate = mtime;
-		}
-	} catch {
-		// Ignore stat errors; fall back to frontmatter behavior.
-	}
-}
+const pubDateMinute = truncateToMinute(post.data.pubDate);
+const effectiveUpdatedDate = await getEffectiveUpdatedDateMinute(post);
 ---
 
-<BlogPost {...post.data} updatedDate={effectiveUpdatedDate} headings={headings}>
+<BlogPost {...post.data} pubDate={pubDateMinute} updatedDate={effectiveUpdatedDate} headings={headings}>
 	<Content />
 </BlogPost>
