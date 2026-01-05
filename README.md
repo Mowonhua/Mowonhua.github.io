@@ -71,6 +71,9 @@ The generated frontmatter matches `src/content.config.ts`:
 
 When you are ready to publish:
 
-1. Move the file from `src/content/drafts` to `src/content/blog`
-2. Ensure required frontmatter is present (`title`, `description`, `pubDate`)
-3. Run `npm run dev` (or `npm run build`) to verify it parses and renders
+1. Publish drafts with the script:
+	- Publish all drafts: `npm run post`
+	- Publish drafts whose filename/path contains a substring: `npm run post <name>`
+	- Publish one draft by slug (fuzzy match): `npm run post -- --slug "my-post"`
+	- Publish one draft by explicit path: `npm run post -- --file "src/content/drafts/my-post.md"`
+2. Run `npm run dev` (or `npm run build`) to verify it parses and renders

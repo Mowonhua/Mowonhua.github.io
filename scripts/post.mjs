@@ -4,8 +4,14 @@ import process from 'node:process';
 
 function usage() {
 	return `Usage:
-  npm run post -- --slug "my-post"
-  npm run post -- --file "src/content/drafts/my-post.md"
+	  npm run post
+	  npm run post <name>
+	  npm run post -- --slug "my-post"
+	  npm run post -- --file "src/content/drafts/my-post.md"
+
+Positional:
+	<name>              Publish drafts whose relative path/filename contains <name>
+	                   (case-insensitive, substring match). Publishes all matches.
 
 Options:
   --slug "my-post"     Draft filename (without extension)
@@ -23,11 +29,22 @@ Slug matching:
 `;
 }
 
-function parseArgs(argv) {
+function parseCli(argv) {
+	/** @type {Record<string, string | boolean>} */
 	const args = {};
+	/** @type {string[]} */
+	const positionals = [];
+
 	for (let i = 0; i < argv.length; i++) {
 		const token = argv[i];
-		if (!token.startsWith('--')) continue;
+		if (token === '--') {
+			positionals.push(...argv.slice(i + 1));
+			break;
+		}
+		if (!token.startsWith('--')) {
+			positionals.push(token);
+			continue;
+		}
 		const key = token.slice(2);
 		if (!key) continue;
 		const next = argv[i + 1];
@@ -38,7 +55,8 @@ function parseArgs(argv) {
 		args[key] = next;
 		i++;
 	}
-	return args;
+
+	return { args, positionals };
 }
 
 function pad2(n) {
@@ -67,6 +85,21 @@ function resolvePathsFromArgs({ cwd, slug, file }) {
 	}
 
 	return { draftsDir, blogDir, src: null };
+}
+
+function relFrom(rootDir, fullPath) {
+	return path.relative(rootDir, fullPath).split(path.sep).join('/');
+}
+
+function relNoExtFrom(rootDir, fullPath) {
+	return relFrom(rootDir, fullPath).replace(/\.(md|mdx)$/i, '');
+}
+
+function normalizeNeedle(input) {
+	return String(input ?? '')
+		.trim()
+		.replace(/\.(md|mdx)$/i, '')
+		.toLowerCase();
 }
 
 async function listDraftMarkdownFiles(rootDir) {
@@ -190,40 +223,20 @@ async function fileExists(p) {
 	}
 }
 
-async function main() {
-	const args = parseArgs(process.argv.slice(2));
-	if (args.help || args.h) {
-		process.stdout.write(usage());
-		return;
-	}
-
-	const cwd = process.cwd();
-	const { draftsDir, blogDir, src: srcFromArgs } = resolvePathsFromArgs({ cwd, slug: args.slug, file: args.file });
-	let src = srcFromArgs;
-	if (!src && typeof args.slug === 'string' && args.slug.trim()) {
-		src = await resolveDraftFromSlugFuzzy({ cwd, draftsDir, slug: args.slug });
-	}
-
-	if (!src) {
-		process.stdout.write(usage());
-		process.exitCode = 1;
-		return;
-	}
-
-	const srcNormalized = path.resolve(src);
+async function publishOneDraft({ cwd, draftsDir, blogDir, srcNormalized, pubDateValue }) {
 	if (!srcNormalized.startsWith(draftsDir + path.sep)) {
 		throw new Error(`Draft file must be under ${draftsDir}`);
 	}
 
 	if (!(await fileExists(srcNormalized))) {
-		throw new Error(`Draft not found: ${path.relative(cwd, srcNormalized).split(path.sep).join('/')}`);
+		throw new Error(`Draft not found: ${relFrom(cwd, srcNormalized)}`);
 	}
 
 	const relFromDrafts = path.relative(draftsDir, srcNormalized);
 	const dest = path.join(blogDir, relFromDrafts);
 
 	if (await fileExists(dest)) {
-		throw new Error(`Destination already exists: ${path.relative(cwd, dest).split(path.sep).join('/')}`);
+		throw new Error(`Destination already exists: ${relFrom(cwd, dest)}`);
 	}
 
 	const markdown = await fs.readFile(srcNormalized, 'utf8');
@@ -232,7 +245,6 @@ async function main() {
 		throw new Error('Draft is missing YAML frontmatter (expected starting --- block)');
 	}
 
-	const pubDateValue = formatDateTimeYYYYMMDDHHmm(truncateToMinute(new Date()));
 	const updatedFrontmatter = updatePubDateInFrontmatter(fm.raw, pubDateValue);
 	const out = `---\n${updatedFrontmatter}\n---\n${fm.rest}`;
 
@@ -240,8 +252,99 @@ async function main() {
 	await fs.writeFile(dest, out, { encoding: 'utf8', flag: 'wx' });
 	await fs.unlink(srcNormalized);
 
-	const relDest = path.relative(cwd, dest).split(path.sep).join('/');
-	process.stdout.write(`Published: ${relDest}\n`);
+	return dest;
+}
+
+async function publishManyDrafts({ cwd, draftsDir, blogDir, sources, pubDateValue }) {
+	if (sources.length === 0) {
+		process.stdout.write('No drafts to publish.\n');
+		return;
+	}
+
+	// Preflight: normalize + validate + detect conflicts before moving anything.
+	const normalized = sources.map((p) => path.resolve(p));
+	for (const p of normalized) {
+		if (!p.startsWith(draftsDir + path.sep)) {
+			throw new Error(`Draft file must be under ${draftsDir}: ${relFrom(cwd, p)}`);
+		}
+		if (!(await fileExists(p))) {
+			throw new Error(`Draft not found: ${relFrom(cwd, p)}`);
+		}
+	}
+
+	const dests = normalized.map((p) => path.join(blogDir, path.relative(draftsDir, p)));
+	const conflicts = [];
+	for (const dest of dests) {
+		if (await fileExists(dest)) conflicts.push(relFrom(cwd, dest));
+	}
+	if (conflicts.length > 0) {
+		throw new Error(`Destination already exists:\n${conflicts.map((x) => `- ${x}`).join('\n')}`);
+	}
+
+	// Publish in a stable order.
+	const ordered = normalized
+		.map((full) => ({ full, rel: relFrom(draftsDir, full) }))
+		.sort((a, b) => a.rel.localeCompare(b.rel));
+
+	for (const item of ordered) {
+		const dest = await publishOneDraft({ cwd, draftsDir, blogDir, srcNormalized: item.full, pubDateValue });
+		process.stdout.write(`Published: ${relFrom(cwd, dest)}\n`);
+	}
+}
+
+async function main() {
+	const { args, positionals } = parseCli(process.argv.slice(2));
+	if (args.help || args.h) {
+		process.stdout.write(usage());
+		return;
+	}
+
+	// Allow `npm run post --slug=...` without `-- --slug ...`
+	if (typeof args.slug !== 'string' && typeof process.env.npm_config_slug === 'string') {
+		args.slug = process.env.npm_config_slug;
+	}
+	if (typeof args.file !== 'string' && typeof process.env.npm_config_file === 'string') {
+		args.file = process.env.npm_config_file;
+	}
+
+	const cwd = process.cwd();
+	const { draftsDir, blogDir, src: srcFromArgs } = resolvePathsFromArgs({ cwd, slug: args.slug, file: args.file });
+	const pubDateValue = formatDateTimeYYYYMMDDHHmm(truncateToMinute(new Date()));
+
+	// Case 1: explicit --file
+	if (typeof args.file === 'string' && args.file.trim()) {
+		const srcNormalized = path.resolve(cwd, args.file.trim());
+		const dest = await publishOneDraft({ cwd, draftsDir, blogDir, srcNormalized, pubDateValue });
+		process.stdout.write(`Published: ${relFrom(cwd, dest)}\n`);
+		return;
+	}
+
+	// Case 2: explicit --slug
+	if (typeof args.slug === 'string' && args.slug.trim()) {
+		const src = await resolveDraftFromSlugFuzzy({ cwd, draftsDir, slug: args.slug });
+		const dest = await publishOneDraft({ cwd, draftsDir, blogDir, srcNormalized: path.resolve(src), pubDateValue });
+		process.stdout.write(`Published: ${relFrom(cwd, dest)}\n`);
+		return;
+	}
+
+	// Case 3: positional filter (publish all matches)
+	const needle = positionals.length > 0 ? normalizeNeedle(positionals[0]) : '';
+	if (positionals.length > 1) {
+		throw new Error(`Too many positional args: ${positionals.map((x) => JSON.stringify(x)).join(', ')}`);
+	}
+
+	const allDrafts = await listDraftMarkdownFiles(draftsDir);
+	if (needle) {
+		const matches = allDrafts.filter((full) => relNoExtFrom(draftsDir, full).toLowerCase().includes(needle));
+		if (matches.length === 0) {
+			throw new Error(`No matching drafts found for ${JSON.stringify(positionals[0])}`);
+		}
+		await publishManyDrafts({ cwd, draftsDir, blogDir, sources: matches, pubDateValue });
+		return;
+	}
+
+	// Case 4: no args => publish everything under drafts
+	await publishManyDrafts({ cwd, draftsDir, blogDir, sources: allDrafts, pubDateValue });
 }
 
 main().catch((err) => {
