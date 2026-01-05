@@ -1,5 +1,5 @@
 ---
-title: "仿生免疫综述"
+title: "仿生免疫综述-跨代算法"
 description: ""
 pubDate: 2026-01-04 16:13
 tags:
