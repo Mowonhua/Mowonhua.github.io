@@ -17,6 +17,12 @@ function walk(node) {
 	if (!node || typeof node !== 'object') return;
 
 	if (Array.isArray(node.children)) {
+		// -1) Repair a common CJK delimiter failure:
+		// Markdown may treat the `**` that should close one bold span as the opener of the next,
+		// producing a pattern like: text('...**A') + strong('B') + text('C**...').
+		// We rewrite it into: text('...') + strong('A') + text('B') + strong('C') + text('...').
+		repairMisparsedSiblingAsterisks(node);
+
 		// 0) Fix the specific bad parse shape: `strong` containing a nested `strong`.
 		// This happens with CJK/punctuation adjacency like `**《title》**提出...中的**免疫...**`.
 		for (let index = 0; index < node.children.length; index++) {
@@ -71,6 +77,73 @@ function walk(node) {
 
 		for (const child of node.children) {
 			walk(child);
+		}
+	}
+}
+
+function repairMisparsedSiblingAsterisks(parent) {
+	if (!parent || !Array.isArray(parent.children)) return;
+
+	for (let index = 0; index < parent.children.length; index++) {
+		const cur = parent.children[index];
+		if (!cur || cur.type !== 'text' || typeof cur.value !== 'string') continue;
+
+		const markerCount = countOccurrences(cur.value, '**');
+		if (markerCount % 2 === 0) continue;
+		if (!looksLikeCjkContext(cur.value)) continue;
+
+		// Rule A: text ends with an unmatched opener, and next sibling is a strong.
+		// e.g. '...提出了**r-块（r-chunks）' + strong('匹配方案...引入')
+		const lastMarker = cur.value.lastIndexOf('**');
+		if (lastMarker !== -1) {
+			const prefix = cur.value.slice(0, lastMarker);
+			const boldCandidate = cur.value.slice(lastMarker + 2);
+			const next = parent.children[index + 1];
+
+			if (
+				next &&
+				next.type === 'strong' &&
+				boldCandidate &&
+				boldCandidate.trim() !== '' &&
+				boldCandidate.length <= 120 &&
+				!boldCandidate.includes('\n')
+			) {
+				const replacement = [];
+				if (prefix) replacement.push({ type: 'text', value: prefix });
+				replacement.push({ type: 'strong', children: [{ type: 'text', value: boldCandidate }] });
+
+				const nextPlain = flattenText(next);
+				if (nextPlain) replacement.push({ type: 'text', value: nextPlain });
+
+				parent.children.splice(index, 2, ...replacement);
+				index += replacement.length - 1;
+				continue;
+			}
+		}
+
+		// Rule B: text contains a single unmatched closer, with a short, single-line lead.
+		// e.g. '置换掩码（Permutation Masks）**进一步...'
+		if (markerCount === 1) {
+			const at = cur.value.indexOf('**');
+			const lead = cur.value.slice(0, at);
+			const tail = cur.value.slice(at + 2);
+
+			if (
+				at > 0 &&
+				lead &&
+				lead.trim() !== '' &&
+				lead.length <= 120 &&
+				!lead.includes('\n') &&
+				tail &&
+				tail.trim() !== ''
+			) {
+				const replacement = [
+					{ type: 'strong', children: [{ type: 'text', value: lead }] },
+					{ type: 'text', value: tail },
+				];
+				parent.children.splice(index, 1, ...replacement);
+				index += replacement.length - 1;
+			}
 		}
 	}
 }
