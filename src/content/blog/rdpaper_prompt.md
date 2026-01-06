@@ -167,6 +167,9 @@ After determining and applying the appropriate section structure, the agent must
   Colons, metaphors, or rhetorical expressions in titles are prohibited.
 - The article must begin with a concise introductory paragraph written in plain text (not a header), in the form:  
   “《title of paper》XXX（选择合适的动词）……”.
+- Every mathematical formula appearing in the paper must be fully and explicitly explained together with its functional role and point of application: for each formula, the explanation must clearly state where in the method, algorithm, protocol, or architecture the formula is used, what subsequent operation, decision, or result depends on it, and which later formulas, steps, or components consume its output. No formula may be explained in isolation or without tracing its downstream usage, and no formula whose output is used elsewhere may be omitted or left unexplained.
+  - Every mathematical formula must be written out in full LaTeX form in the text, rather than being replaced by a symbolic reference alone. Describing a formula only by its name, index, or qualitative role without reproducing its actual mathematical form is strictly prohibited. Any formula whose computation, condition, trigger, or effect is discussed must be explicitly presented, explained, and integrated into the surrounding exposition.
+  - The agent must assume that the reader has no access to the original paper and must reconstruct all necessary formulas directly in the output.
 - When mathematical formulas are involved, explanations must be tightly integrated with the formulas, clearly defining all variables and parameters.
 - All display equations must follow strict LaTeX formatting rules:
   - The delimiter `$$` must appear on a line by itself.
