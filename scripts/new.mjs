@@ -106,7 +106,7 @@ function slugify(input) {
 function splitTags(input) {
 	if (input == null) return [];
 	const raw = String(input)
-		.split(',')
+		.split(/[,，]/)
 		.map((t) => t.trim())
 		.filter(Boolean);
 	// de-dupe while preserving order
